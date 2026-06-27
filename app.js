@@ -421,7 +421,7 @@ function injectLearnBubble() {
   bubble.id = 'learn-bubble';
   bubble.innerHTML = `
     <div id="learn-bubble-tooltip">🚀 <strong>¿Nuevo en programación?</strong><br>Aprende Kotlin y Android Studio</div>
-    <a id="learn-bubble-btn" href="../aprende-programacion.html" title="Aprende a programar">🧑‍💻</a>
+    <a id="learn-bubble-btn" href="aprende-programacion.html" title="Aprende a programar">🧑‍💻</a>
   `;
   document.body.appendChild(bubble);
 
