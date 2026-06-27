@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brighter Perú — Simulación Tienda</title>
+<style>
+  :root {
+    --teal: #00a3a3;
+    --teal-dark: #007a7a;
+    --teal-light: #e6f7f7;
+    --orange: #f97316;
+    --dark: #1a2332;
+    --gray: #64748b;
+    --light: #f8fafc;
+    --border: #e2e8f0;
+    --green: #22c55e;
+    --red: #ef4444;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-hover: 0 8px 30px rgba(0,163,163,0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); color: var(--dark); }
+
+  /* ── HEADER ── */
+  header {
+    background: white; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between; height: 68px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .logo svg { width: 36px; height: 36px; }
+  .logo-text { font-size: 22px; font-weight: 700; color: var(--dark); letter-spacing: -0.5px; }
+  nav { display: flex; gap: 28px; }
+  nav a {
+    color: var(--gray); text-decoration: none; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: color .2s;
+  }
+  nav a:hover, nav a.active { color: var(--teal); }
+  .header-actions { display: flex; align-items: center; gap: 16px; }
+  .cart-btn {
+    position: relative; background: var(--teal); color: white;
+    border: none; border-radius: 10px; padding: 10px 16px;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px; transition: background .2s;
+  }
+  .cart-btn:hover { background: var(--teal-dark); }
+  .cart-count {
+    background: var(--orange); color: white; border-radius: 50%;
+    width: 20px; height: 20px; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0d1f2d 0%, #1a3a5c 50%, #005f6b 100%);
+    color: white; padding: 80px 24px; text-align: center;
+  }
+  .hero-sub { font-size: 15px; opacity: .6; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .hero h1 { font-size: 56px; font-weight: 800; letter-spacing: -2px; opacity: .9; margin-bottom: 24px; }
+  .hero p { font-size: 17px; opacity: .7; max-width: 500px; margin: 0 auto 36px; line-height: 1.6; }
+  .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--teal); color: white; border: none; border-radius: 12px;
+    padding: 14px 28px; font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: all .2s; display: flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+  .btn-outline {
+    background: transparent; color: white; border: 2px solid rgba(255,255,255,.3);
+    border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-outline:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+
+  /* ── CATALOG ── */
+  .catalog-section { max-width: 1200px; margin: 48px auto; padding: 0 24px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .section-title { font-size: 22px; font-weight: 700; }
+  .filter-bar {
+    display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: white; font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all .2s; color: var(--gray);
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--teal); color: white; border-color: var(--teal);
+  }
+  .products-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;
+  }
+  .product-card {
+    background: white; border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border); transition: all .25s; cursor: pointer;
+    position: relative;
+  }
+  .product-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); border-color: var(--teal); }
+  .product-img {
+    height: 190px; background: linear-gradient(135deg, #0d1f2d, #1a3a5c);
+    display: flex; align-items: center; justify-content: center; position: relative;
+    overflow: hidden;
+  }
+  .product-img svg { opacity: .7; }
+  .badge-new {
+    position: absolute; top: 12px; right: 12px; background: var(--orange);
+    color: white; font-size: 11px; font-weight: 700; padding: 4px 10px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .badge-cat {
+    position: absolute; top: 12px; left: 12px; background: rgba(0,163,163,.85);
+    color: white; font-size: 10px; font-weight: 700; padding: 3px 9px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .product-info { padding: 18px; }
+  .product-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.4; }
+  .product-desc { font-size: 13px; color: var(--gray); line-height: 1.5; margin-bottom: 14px; }
+  .product-footer { display: flex; align-items: center; justify-content: space-between; }
+  .product-price { font-size: 18px; font-weight: 800; color: var(--teal); }
+  .product-price span { font-size: 12px; font-weight: 400; color: var(--gray); }
+  .btn-ver {
+    background: var(--teal-light); color: var(--teal); border: none;
+    border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-ver:hover { background: var(--teal); color: white; }
+  .wishlist-btn {
+    position: absolute; bottom: 18px; right: 18px; background: transparent;
+    border: 1.5px solid var(--border); border-radius: 8px; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: all .2s; font-size: 16px;
+  }
+  .wishlist-btn:hover { background: #fee2e2; border-color: var(--red); }
+  .wishlist-btn.active { background: #fee2e2; border-color: var(--red); color: var(--red); }
+
+  /* ── MODALIDAD BANNER ── */
+  .modalidad-banner {
+    max-width: 1200px; margin: 0 auto 48px; padding: 0 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  .modal-card {
+    border-radius: 16px; padding: 28px; display: flex; gap: 20px; align-items: flex-start;
+    border: 1px solid var(--border); transition: all .2s; cursor: pointer;
+  }
+  .modal-card:hover { box-shadow: var(--shadow-hover); }
+  .modal-card.compra { background: linear-gradient(135deg, #e6f7f7, #ccefef); border-color: var(--teal); }
+  .modal-card.demo { background: linear-gradient(135deg, #fff7ed, #ffedd5); border-color: var(--orange); }
+  .modal-icon { font-size: 32px; }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .modal-desc { font-size: 13px; color: var(--gray); line-height: 1.5; }
+  .modal-tag {
+    display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
+  }
+  .modal-card.compra .modal-tag { background: var(--teal); color: white; }
+  .modal-card.demo .modal-tag { background: var(--orange); color: white; }
+
+  /* ── PRODUCT DETAIL ── */
+  #page-detail { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+  .back-btn {
+    display: flex; align-items: center; gap: 8px; color: var(--gray);
+    cursor: pointer; font-size: 14px; margin-bottom: 28px;
+    border: none; background: none; font-weight: 500; transition: color .2s;
+  }
+  .back-btn:hover { color: var(--teal); }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .detail-img {
+    background: linear-gradient(135deg, #0d1f2d, #1a3a5c);
+    border-radius: 20px; height: 380px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .screen-preview {
+    width: 260px; height: 160px; background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 8px; border: 3px solid #333; position: relative;
+    display: flex; align-items: center; justify-content: center; color: white;
+    font-size: 13px; font-weight: 600; box-shadow: 0 20px 40px rgba(0,0,0,.4);
+  }
+  .screen-size-badge {
+    position: absolute; top: -10px; right: -10px; background: var(--teal);
+    color: white; border-radius: 20px; padding: 4px 12px; font-size: 13px; font-weight: 700;
+  }
+  .detail-info .detail-cat { font-size: 12px; color: var(--teal); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .detail-info h2 { font-size: 28px; font-weight: 800; line-height: 1.3; margin-bottom: 12px; }
+  .detail-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .stars { color: #f59e0b; font-size: 16px; }
+  .detail-info .price-big { font-size: 36px; font-weight: 800; color: var(--teal); margin-bottom: 4px; }
+  .price-note { font-size: 12px; color: var(--gray); margin-bottom: 24px; }
+
+  /* Config options */
+  .config-group { margin-bottom: 24px; }
+  .config-label { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
+  .size-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .size-opt {
+    padding: 8px 16px; border-radius: 8px; border: 2px solid var(--border);
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+    background: white;
+  }
+  .size-opt:hover { border-color: var(--teal); color: var(--teal); }
+  .size-opt.selected { border-color: var(--teal); background: var(--teal); color: white; }
+  .size-opt.disabled { opacity: .4; cursor: not-allowed; }
+  .model-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .model-opt {
+    padding: 14px; border-radius: 10px; border: 2px solid var(--border);
+    cursor: pointer; transition: all .2s; background: white;
+  }
+  .model-opt:hover { border-color: var(--teal); }
+  .model-opt.selected { border-color: var(--teal); background: var(--teal-light); }
+  .model-opt .model-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .model-opt .model-extra { font-size: 11px; color: var(--gray); }
+  .addon-options { display: flex; flex-direction: column; gap: 8px; }
+  .addon-opt {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-radius: 10px; border: 2px solid var(--border);
+    cursor: pointer; transition: all .2s; background: white;
+  }
+  .addon-opt:hover { border-color: var(--teal); }
+  .addon-opt.selected { border-color: var(--teal); background: var(--teal-light); }
+  .addon-left { display: flex; align-items: center; gap: 10px; }
+  .addon-icon { font-size: 18px; }
+  .addon-name { font-size: 13px; font-weight: 600; }
+  .addon-desc { font-size: 11px; color: var(--gray); }
+  .addon-price { font-size: 13px; font-weight: 700; color: var(--teal); }
+  .addon-check {
+    width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+    transition: all .2s; flex-shrink: 0;
+  }
+  .addon-opt.selected .addon-check { background: var(--teal); border-color: var(--teal); color: white; }
+
+  /* Detail CTAs */
+  .detail-total {
+    background: var(--light); border-radius: 12px; padding: 16px;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .total-label { font-size: 13px; color: var(--gray); }
+  .total-amount { font-size: 24px; font-weight: 800; color: var(--teal); }
+  .cta-buttons { display: flex; gap: 10px; flex-direction: column; }
+  .btn-buy {
+    background: var(--teal); color: white; border: none; border-radius: 12px;
+    padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-buy:hover { background: var(--teal-dark); transform: translateY(-1px); }
+  .btn-demo {
+    background: white; color: var(--orange); border: 2px solid var(--orange);
+    border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-demo:hover { background: #fff7ed; }
+  .features-list { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+  .feat-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--gray); }
+  .feat-check { color: var(--green); font-size: 15px; }
+
+  /* ── CART ── */
+  #page-cart { max-width: 960px; margin: 40px auto; padding: 0 24px; }
+  .cart-grid { display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: start; }
+  .cart-items { background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+  .cart-header { padding: 20px 24px; border-bottom: 1px solid var(--border); font-size: 16px; font-weight: 700; }
+  .cart-item { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-img {
+    width: 80px; height: 60px; background: linear-gradient(135deg, #0d1f2d, #1a3a5c);
+    border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .cart-item-config { font-size: 12px; color: var(--gray); line-height: 1.6; }
+  .cart-item-addons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .addon-tag {
+    background: var(--teal-light); color: var(--teal); font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 20px;
+  }
+  .cart-item-price { font-size: 16px; font-weight: 800; color: var(--teal); text-align: right; }
+  .remove-btn { background: none; border: none; color: var(--red); cursor: pointer; font-size: 16px; margin-top: 8px; }
+  .cart-summary {
+    background: white; border-radius: 16px; border: 1px solid var(--border);
+    padding: 24px; position: sticky; top: 88px;
+  }
+  .summary-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .summary-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: var(--gray); }
+  .summary-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; padding-top: 16px; border-top: 1px solid var(--border); margin-top: 10px; }
+  .total-soles { color: var(--teal); }
+  .btn-checkout {
+    width: 100%; background: var(--teal); color: white; border: none;
+    border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 700;
+    cursor: pointer; margin-top: 20px; transition: all .2s;
+  }
+  .btn-checkout:hover { background: var(--teal-dark); }
+  .secure-note { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray); margin-top: 12px; justify-content: center; }
+
+  /* ── CHECKOUT ── */
+  #page-checkout { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+  .checkout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 32px; }
+  .form-card { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 28px; }
+  .form-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 14px; transition: border-color .2s;
+    font-family: inherit; background: var(--light);
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--teal); background: white;
+  }
+  .form-group textarea { height: 80px; resize: none; }
+  .step-indicators {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 32px;
+  }
+  .step { display: flex; align-items: center; gap: 8px; }
+  .step-dot {
+    width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+  }
+  .step-dot.active { background: var(--teal); border-color: var(--teal); color: white; }
+  .step-dot.done { background: var(--green); border-color: var(--green); color: white; }
+  .step-label { font-size: 13px; font-weight: 500; color: var(--gray); }
+  .step-label.active { color: var(--teal); font-weight: 700; }
+  .step-divider { flex: 1; height: 2px; background: var(--border); }
+
+  /* ── DEMO REQUEST ── */
+  #page-demo { max-width: 760px; margin: 40px auto; padding: 0 24px; }
+  .demo-hero {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    border-radius: 20px; padding: 40px; color: white; text-align: center; margin-bottom: 32px;
+  }
+  .demo-hero h2 { font-size: 30px; font-weight: 800; margin-bottom: 10px; }
+  .demo-hero p { opacity: .85; font-size: 15px; line-height: 1.6; }
+  .demo-steps {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;
+  }
+  .demo-step {
+    background: white; border-radius: 14px; padding: 20px; text-align: center;
+    border: 1px solid var(--border);
+  }
+  .demo-step-num {
+    width: 36px; height: 36px; background: var(--orange); color: white;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; margin: 0 auto 12px;
+  }
+  .demo-step h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .demo-step p { font-size: 12px; color: var(--gray); line-height: 1.5; }
+  .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .slot-opt {
+    padding: 10px; border-radius: 8px; border: 1.5px solid var(--border);
+    text-align: center; font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all .2s;
+  }
+  .slot-opt:hover { border-color: var(--orange); color: var(--orange); }
+  .slot-opt.selected { background: var(--orange); color: white; border-color: var(--orange); }
+
+  /* ── SUCCESS ── */
+  #page-success { max-width: 600px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .success-icon { font-size: 72px; margin-bottom: 24px; }
+  .success-card {
+    background: white; border-radius: 20px; padding: 48px; border: 1px solid var(--border);
+  }
+  .success-card h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+  .success-card p { color: var(--gray); font-size: 15px; line-height: 1.7; margin-bottom: 28px; }
+  .order-box {
+    background: var(--teal-light); border-radius: 12px; padding: 20px; margin-bottom: 28px;
+    border: 1px solid rgba(0,163,163,.2);
+  }
+  .order-box .order-num { font-size: 22px; font-weight: 800; color: var(--teal); }
+  .order-box .order-label { font-size: 12px; color: var(--gray); }
+  .next-steps { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+  .next-step { display: flex; gap: 12px; align-items: flex-start; }
+  .next-step-icon { background: var(--teal); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .next-step p { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+  /* ── DEMO SUCCESS ── */
+  #page-demo-success { max-width: 600px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .demo-success-card {
+    background: white; border-radius: 20px; padding: 48px; border: 1px solid var(--border);
+  }
+  .demo-success-icon { font-size: 72px; margin-bottom: 20px; }
+  .demo-info-box {
+    background: #fff7ed; border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    border: 1px solid #fed7aa; text-align: left;
+  }
+  .demo-info-box .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+  .demo-info-box .info-row:last-child { margin-bottom: 0; }
+  .info-key { color: var(--gray); }
+  .info-val { font-weight: 700; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .detail-grid, .cart-grid, .checkout-grid { grid-template-columns: 1fr; }
+    .modalidad-banner { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 36px; }
+    .model-options, .demo-steps, .slots-grid { grid-template-columns: 1fr; }
+    nav { display: none; }
+  }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .page.active { animation: fadeIn .3s ease; }
+  @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--dark); color: white; padding: 14px 20px;
+    border-radius: 12px; font-size: 14px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2); z-index: 9999;
+    display: flex; align-items: center; gap: 10px;
+    animation: slideIn .3s ease;
+  }
+  .toast.hide { animation: fadeOut .3s ease forwards; }
+  @keyframes fadeOut { to { opacity: 0; transform: translateY(8px); } }
+
+  /* Empty cart */
+  .empty-cart { text-align: center; padding: 60px 24px; }
+  .empty-cart .empty-icon { font-size: 56px; margin-bottom: 16px; }
+  .empty-cart h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .empty-cart p { color: var(--gray); margin-bottom: 24px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="logo" onclick="showPage('home')">
+      <svg viewBox="0 0 36 36" fill="none">
+        <path d="M18 4 L30 12 L30 28 L18 32 L6 28 L6 12 Z" fill="#0d1f2d" opacity=".1"/>
+        <path d="M10 18 L20 8 L28 14 L22 22 Z" fill="#00a3a3"/>
+        <path d="M10 18 L20 28 L28 22 L22 14 Z" fill="#f97316" opacity=".7"/>
+        <path d="M10 18 L4 12 L12 6 L18 14 Z" fill="#22c55e" opacity=".8"/>
+      </svg>
+      <span class="logo-text">Brighter</span>
+    </div>
+    <nav>
+      <a onclick="showPage('home')" class="active" id="nav-home">Tienda</a>
+      <a onclick="showPage('cart')">Mi carrito</a>
+      <a onclick="goToDemo(null)">Solicitar Demo</a>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-btn" onclick="showPage('cart')">
+        🛒 Carrito
+        <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ HOME ═══════════════════════════════ -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-sub">Brighter Perú — Tecnología Educativa</div>
+    <h1>Comencemos</h1>
+    <p>Soluciones interactivas para colegios, universidades y empresas en el Perú.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">
+        🛍️ Ver productos
+      </button>
+      <button class="btn-outline" onclick="goToDemo(null)">
+        📋 Solicitar demostración
+      </button>
+    </div>
+  </div>
+
+  <!-- Modalidades -->
+  <div class="modalidad-banner" style="margin-top:48px;">
+    <div class="modal-card compra" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">
+      <div class="modal-icon">🛒</div>
+      <div>
+        <div class="modal-title">Compra en línea</div>
+        <div class="modal-desc">Elige tu producto, configúralo a tu medida y realiza tu pedido directamente desde nuestra tienda. Asesoría incluida post-compra.</div>
+        <span class="modal-tag">Tienda online</span>
+      </div>
+    </div>
+    <div class="modal-card demo" onclick="goToDemo(null)">
+      <div class="modal-icon">🎯</div>
+      <div>
+        <div class="modal-title">Solicitar demostración</div>
+        <div class="modal-desc">Un asesor Brighter va a tu institución y hace una demo en vivo. Ideal para colegios, universidades y empresas que quieren ver la tecnología antes de decidir.</div>
+        <span class="modal-tag">Demo presencial</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catálogo -->
+  <div class="catalog-section" id="catalogo">
+    <div class="section-header">
+      <div class="section-title">Catálogo de productos</div>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterProducts('all', this)">Todos</button>
+      <button class="filter-btn" onclick="filterProducts('educacion', this)">Educación</button>
+      <button class="filter-btn" onclick="filterProducts('empresa', this)">Empresas</button>
+      <button class="filter-btn" onclick="filterProducts('software', this)">Software</button>
+      <button class="filter-btn" onclick="filterProducts('totem', this)">Tótems / LED</button>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PRODUCT DETAIL ═══════════════════════════════ -->
+<div id="page-detail" class="page">
+  <button class="back-btn" onclick="showPage('home')">← Volver al catálogo</button>
+  <div class="detail-grid">
+    <div>
+      <div class="detail-img" id="detail-img">
+        <div class="screen-preview" id="screen-preview">
+          <div class="screen-size-badge" id="size-badge">86"</div>
+          🖥️ Vista previa
+        </div>
+      </div>
+      <div class="features-list" id="features-list"></div>
+    </div>
+    <div class="detail-info">
+      <div class="detail-cat" id="detail-cat"></div>
+      <h2 id="detail-name"></h2>
+      <div class="detail-rating">
+        <span class="stars">★★★★★</span>
+        <span style="font-size:13px;color:var(--gray)">4.9 · 48 reseñas</span>
+      </div>
+      <div class="price-big" id="detail-price"></div>
+      <div class="price-note">Precio sin IGV · Incluye instalación y capacitación inicial</div>
+
+      <!-- Tamaño -->
+      <div class="config-group" id="size-group">
+        <div class="config-label">Tamaño de pantalla</div>
+        <div class="size-options" id="size-options"></div>
+      </div>
+
+      <!-- Modelo -->
+      <div class="config-group" id="model-group">
+        <div class="config-label">Modelo</div>
+        <div class="model-options" id="model-options"></div>
+      </div>
+
+      <!-- Add-ons software -->
+      <div class="config-group" id="addons-group">
+        <div class="config-label">Software adicional (opcional)</div>
+        <div class="addon-options" id="addon-options"></div>
+      </div>
+
+      <!-- Total -->
+      <div class="detail-total">
+        <div>
+          <div class="total-label">Total estimado</div>
+          <div class="total-amount" id="config-total">S/ 0</div>
+        </div>
+        <div style="font-size:12px;color:var(--gray);text-align:right">
+          IGV incluido<br>Financiamiento disponible
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div class="cta-buttons">
+        <button class="btn-buy" onclick="addToCart()">
+          🛒 Agregar al carrito
+        </button>
+        <button class="btn-demo" onclick="goToDemo('current')">
+          📋 Solicitar demostración gratuita
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CART ═══════════════════════════════ -->
+<div id="page-cart" class="page">
+  <div style="max-width:960px;margin:40px auto;padding:0 24px;">
+    <button class="back-btn" onclick="showPage('home')">← Seguir comprando</button>
+    <div id="cart-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CHECKOUT ═══════════════════════════════ -->
+<div id="page-checkout" class="page">
+  <button class="back-btn" style="max-width:900px;margin:40px auto 0;padding:0 24px;display:flex;" onclick="showPage('cart')">← Volver al carrito</button>
+  <div style="max-width:900px;margin:16px auto 40px;padding:0 24px;">
+    <div class="step-indicators">
+      <div class="step">
+        <div class="step-dot done">✓</div>
+        <span class="step-label">Carrito</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step">
+        <div class="step-dot active">2</div>
+        <span class="step-label active">Datos</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step">
+        <div class="step-dot">3</div>
+        <span class="step-label">Confirmación</span>
+      </div>
+    </div>
+    <div class="checkout-grid">
+      <div>
+        <div class="form-card" style="margin-bottom:20px;">
+          <h3>📋 Datos de contacto</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" placeholder="Ej: Juan García" id="co-nombre">
+            </div>
+            <div class="form-group">
+              <label>Apellido</label>
+              <input type="text" placeholder="Ej: Ramírez" id="co-apellido">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Correo electrónico</label>
+              <input type="email" placeholder="correo@institución.edu.pe" id="co-email">
+            </div>
+            <div class="form-group">
+              <label>Teléfono / WhatsApp</label>
+              <input type="tel" placeholder="+51 9XX XXX XXX" id="co-tel">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Institución / Empresa</label>
+            <input type="text" placeholder="Nombre del colegio, universidad o empresa" id="co-inst">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ciudad</label>
+              <select id="co-ciudad">
+                <option>Arequipa</option>
+                <option>Lima</option>
+                <option>Cusco</option>
+                <option>Trujillo</option>
+                <option>Otra</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tipo de institución</label>
+              <select id="co-tipo">
+                <option>Colegio privado</option>
+                <option>Colegio público</option>
+                <option>Universidad</option>
+                <option>Empresa</option>
+                <option>Municipalidad</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-card">
+          <h3>💬 Información adicional</h3>
+          <div class="form-group">
+            <label>¿Algún detalle o consulta?</label>
+            <textarea placeholder="Ej: Necesito 3 unidades para las aulas de secundaria, con instalación incluida..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>¿Cómo nos conociste?</label>
+            <select>
+              <option>Google / Internet</option>
+              <option>Recomendación</option>
+              <option>Redes sociales</option>
+              <option>Evento / Feria</option>
+              <option>Otro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="cart-summary">
+          <div class="summary-title">Resumen del pedido</div>
+          <div id="checkout-summary-items"></div>
+          <div class="summary-line">
+            <span>Subtotal</span><span id="co-subtotal">S/ 0</span>
+          </div>
+          <div class="summary-line">
+            <span>IGV (18%)</span><span id="co-igv">S/ 0</span>
+          </div>
+          <div class="summary-line">
+            <span>Instalación</span><span style="color:var(--green)">Incluida</span>
+          </div>
+          <div class="summary-total">
+            <span>Total</span>
+            <span class="total-soles" id="co-total">S/ 0</span>
+          </div>
+          <button class="btn-checkout" onclick="completeOrder()">
+            ✅ Confirmar pedido
+          </button>
+          <div class="secure-note">🔒 Pago seguro · Factura electrónica</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DEMO REQUEST ═══════════════════════════════ -->
+<div id="page-demo" class="page">
+  <div style="max-width:760px;margin:40px auto;padding:0 24px;">
+    <button class="back-btn" onclick="showPage('home')">← Volver</button>
+    <div class="demo-hero">
+      <div style="font-size:48px;margin-bottom:16px;">🎯</div>
+      <h2>Solicita tu demostración gratuita</h2>
+      <p>Un asesor Brighter va a tu institución, instala la pantalla y hace una clase o reunión real. Sin costo, sin compromiso.</p>
+    </div>
+    <div class="demo-steps">
+      <div class="demo-step">
+        <div class="demo-step-num">1</div>
+        <h4>Agenda</h4>
+        <p>Elige fecha y horario. Te confirmamos en menos de 24h.</p>
+      </div>
+      <div class="demo-step">
+        <div class="demo-step-num">2</div>
+        <h4>Demo en vivo</h4>
+        <p>Nuestro asesor lleva el equipo y hace la demo en tu espacio real.</p>
+      </div>
+      <div class="demo-step">
+        <div class="demo-step-num">3</div>
+        <h4>Decide</h4>
+        <p>Si te convence, coordinamos el pedido. Sin presión.</p>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>📋 Datos para tu demostración</h3>
+      <div id="demo-product-info" style="background:var(--teal-light);border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;display:none;">
+        <strong>Producto de interés:</strong> <span id="demo-product-name"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" placeholder="Tu nombre" id="dm-nombre">
+        </div>
+        <div class="form-group">
+          <label>Cargo</label>
+          <input type="text" placeholder="Ej: Director, Gerente, Docente" id="dm-cargo">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Correo</label>
+          <input type="email" placeholder="correo@institución.edu.pe" id="dm-email">
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="tel" placeholder="+51 9XX XXX XXX" id="dm-tel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Institución / Empresa</label>
+        <input type="text" placeholder="Nombre del colegio, universidad o empresa" id="dm-inst">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ciudad</label>
+          <select id="dm-ciudad">
+            <option>Arequipa</option>
+            <option>Lima</option>
+            <option>Cusco</option>
+            <option>Trujillo</option>
+            <option>Otra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de institución</label>
+          <select>
+            <option>Colegio privado</option>
+            <option>Universidad</option>
+            <option>Empresa</option>
+            <option>Municipalidad</option>
+            <option>Colegio público</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Elige tu horario preferido</label>
+        <div class="slots-grid" id="slots-grid">
+          <div class="slot-opt" onclick="selectSlot(this)">Lun 7 Jul · 9:00am</div>
+          <div class="slot-opt" onclick="selectSlot(this)">Lun 7 Jul · 3:00pm</div>
+          <div class="slot-opt" onclick="selectSlot(this)">Mar 8 Jul · 10:00am</div>
+          <div class="slot-opt" onclick="selectSlot(this)">Mar 8 Jul · 4:00pm</div>
+          <div class="slot-opt" onclick="selectSlot(this)">Mié 9 Jul · 9:00am</div>
+          <div class="slot-opt" onclick="selectSlot(this)">Mié 9 Jul · 2:00pm</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Producto de interés</label>
+        <select id="dm-producto">
+          <option>Pantalla Interactiva BTOUCH 86"</option>
+          <option>Pantalla Interactiva BTOUCH 98"</option>
+          <option>Pantalla Interactiva BTOUCH 110"</option>
+          <option>Tótem Interactivo BT-55XTD</option>
+          <option>ERP Odoo</option>
+          <option>LMS Educativo</option>
+          <option>Otro / Quiero asesoría</option>
+        </select>
+      </div>
+      <button class="btn-buy" style="margin-top:8px;" onclick="confirmDemo()">
+        📅 Confirmar solicitud de demo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SUCCESS ═══════════════════════════════ -->
+<div id="page-success" class="page">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <h2>¡Pedido confirmado!</h2>
+    <p>Tu pedido fue registrado correctamente. Un asesor Brighter se contactará contigo en menos de 24 horas para coordinar la entrega e instalación.</p>
+    <div class="order-box">
+      <div class="order-label">Número de pedido</div>
+      <div class="order-num" id="order-number">#BR-2026-0001</div>
+    </div>
+    <div class="next-steps">
+      <div class="next-step">
+        <div class="next-step-icon">📞</div>
+        <p><strong>Llamada de confirmación</strong> — Un asesor te llamará al WhatsApp en menos de 24h para coordinar detalles.</p>
+      </div>
+      <div class="next-step">
+        <div class="next-step-icon">📦</div>
+        <p><strong>Entrega e instalación</strong> — Nuestro equipo técnico instala el equipo en tu local sin costo adicional.</p>
+      </div>
+      <div class="next-step">
+        <div class="next-step-icon">🎓</div>
+        <p><strong>Capacitación inicial</strong> — Incluimos una sesión de formación para tus docentes o equipo.</p>
+      </div>
+    </div>
+    <button class="btn-buy" style="margin-top:28px;" onclick="resetAndGoHome()">
+      Volver a la tienda
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DEMO SUCCESS ═══════════════════════════════ -->
+<div id="page-demo-success" class="page">
+  <div class="demo-success-card">
+    <div class="demo-success-icon">🎯</div>
+    <h2 style="font-size:26px;font-weight:800;margin-bottom:10px;">¡Demostración agendada!</h2>
+    <p style="color:var(--gray);font-size:14px;line-height:1.7;margin-bottom:24px;">
+      Recibimos tu solicitud. Un asesor Brighter confirmará la visita dentro de las próximas horas.
+    </p>
+    <div class="demo-info-box" id="demo-confirm-box">
+      <div class="info-row"><span class="info-key">Institución</span><span class="info-val" id="dc-inst">—</span></div>
+      <div class="info-row"><span class="info-key">Fecha preferida</span><span class="info-val" id="dc-slot">—</span></div>
+      <div class="info-row"><span class="info-key">Producto</span><span class="info-val" id="dc-prod">—</span></div>
+      <div class="info-row"><span class="info-key">Asesor asignado</span><span class="info-val">Equipo Brighter Arequipa</span></div>
+    </div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:24px;">
+      📲 Te contactaremos al WhatsApp que registraste. También puedes escribirnos directamente al <strong>+51 949 688 879</strong>.
+    </p>
+    <button class="btn-buy" onclick="resetAndGoHome()">Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ JAVASCRIPT ═══════════════════════════════ -->
+<script>
+// ── DATA ──
+const products = [
+  {
+    id: 1, cat: 'educacion', isNew: false,
+    name: 'Pantalla Interactiva BTOUCH Clásica',
+    shortDesc: 'Serie BT-LKT, Android 15, 4K UHD. Ideal para aulas modernas.',
+    sizes: [65, 75, 86, 98],
+    basePrices: { 65: 4500, 75: 5800, 86: 7200, 98: 9500 },
+    models: [
+      { id: 'clasica', name: 'Versión Clásica', extra: 'Pantalla táctil estándar', extraPrice: 0 },
+      { id: 'hub', name: 'Modelo HUB', extra: 'Con cámara + micrófonos integrados', extraPrice: 800 }
+    ],
+    features: ['4K UHD · 50 puntos multitáctil', 'Android 15 · WiFi + LAN', 'Certificación Google EDLA', 'Atlas + Eshare + Uboardmate incluidos'],
+    emoji: '🖥️'
+  },
+  {
+    id: 2, cat: 'educacion', isNew: false,
+    name: 'Pizarra Electrónica BTOUCH 105"',
+    shortDesc: 'Pantalla de gran formato para auditorios y aulas grandes.',
+    sizes: [105],
+    basePrices: { 105: 12000 },
+    models: [
+      { id: 'std', name: 'Estándar', extra: '105 pulgadas · Android 15', extraPrice: 0 }
+    ],
+    features: ['105" · 4K UHD', 'Android 15 · Sistema táctil avanzado', 'Ideal para auditorios', 'Software educativo preinstalado'],
+    emoji: '📺'
+  },
+  {
+    id: 3, cat: 'educacion', isNew: false,
+    name: 'Pizarra Interactiva BTOUCH 110"',
+    shortDesc: 'La pantalla más grande para experiencias educativas inmersivas.',
+    sizes: [110],
+    basePrices: { 110: 14000 },
+    models: [
+      { id: 'std', name: 'Estándar', extra: '110 pulgadas · Android 15', extraPrice: 0 }
+    ],
+    features: ['110" · Máximo impacto visual', 'Tecnología táctil de precisión', 'Google EDLA · 4K UHD', 'Experiencia inmersiva completa'],
+    emoji: '📺'
+  },
+  {
+    id: 4, cat: 'empresa', isNew: false,
+    name: 'Tótem Interactivo BT-55XTD',
+    shortDesc: 'Kiosko digital para lobbies, recepciones y puntos de atención.',
+    sizes: [55],
+    basePrices: { 55: 5200 },
+    models: [
+      { id: 'vertical', name: 'Vertical', extra: 'Orientación portrait estándar', extraPrice: 0 },
+      { id: 'doble', name: 'Doble cara', extra: 'Pantalla en ambas caras', extraPrice: 1200 }
+    ],
+    features: ['Conexión remota · UHD', 'Sonido incorporado', 'Múltiples puntos táctiles', 'Ideal para self-service y señalización'],
+    emoji: '🏧'
+  },
+  {
+    id: 5, cat: 'totem', isNew: false,
+    name: 'Panel LED BTOUCH 55"',
+    shortDesc: 'Señalización digital de alto impacto para publicidad y comunicación.',
+    sizes: [55],
+    basePrices: { 55: 3800 },
+    models: [
+      { id: 'std', name: 'Estándar', extra: 'Panel LED UHD con sonido', extraPrice: 0 }
+    ],
+    features: ['Alto contraste · Resolución UHD', 'Sonido incorporado', 'Gestión remota de contenido', 'Estructura aluminio resistente'],
+    emoji: '📣'
+  },
+  {
+    id: 6, cat: 'totem', isNew: false,
+    name: 'Pantalla LED All in One 136"',
+    shortDesc: 'Pantalla LED modular de mega formato para eventos y espacios grandes.',
+    sizes: [136],
+    basePrices: { 136: 28000 },
+    models: [
+      { id: 'std', name: 'Estándar', extra: 'LED modular · Gran formato', extraPrice: 0 }
+    ],
+    features: ['136" · Mega formato', 'Modular y escalable', 'Alta luminosidad exterior/interior', 'Ideal para auditorios y eventos'],
+    emoji: '🎬'
+  },
+  {
+    id: 7, cat: 'software', isNew: false,
+    name: 'ERP Odoo — Partner Oficial',
+    shortDesc: 'Gestión integral: inventario, CRM, contabilidad, RRHH y más.',
+    sizes: [],
+    basePrices: { default: 2500 },
+    models: [
+      { id: 'basico', name: 'Plan Básico', extra: 'CRM + Contabilidad + HR', extraPrice: 0 },
+      { id: 'completo', name: 'Plan Completo', extra: '+ Inventario + eCommerce + Proyectos', extraPrice: 1500 }
+    ],
+    features: ['Implementación y capacitación', 'Acceso nube · Escalable', 'Soporte en español', 'Módulos a medida'],
+    emoji: '⚙️'
+  },
+  {
+    id: 8, cat: 'software', isNew: false,
+    name: 'LMS Educativo',
+    shortDesc: 'Plataforma de gestión de aprendizaje integrada con las pantallas BTOUCH.',
+    sizes: [],
+    basePrices: { default: 1200 },
+    models: [
+      { id: 'anual', name: 'Licencia anual', extra: 'Hasta 500 usuarios', extraPrice: 0 },
+      { id: 'institucional', name: 'Institucional', extra: 'Usuarios ilimitados + soporte premium', extraPrice: 800 }
+    ],
+    features: ['Compatible con BTOUCH', 'Moodle / Odoo eLearning', 'Cursos, evaluaciones y reportes', 'Capacitación docente incluida'],
+    emoji: '📚'
+  }
+];
+
+const addons = [
+  { id: 'lms', icon: '📚', name: 'Sistema LMS', desc: 'Plataforma de aprendizaje online', price: 1200, unit: '/año' },
+  { id: 'erp', icon: '⚙️', name: 'ERP Odoo básico', desc: 'CRM + Contabilidad + RRHH', price: 2500, unit: '' },
+  { id: 'english', icon: '🇦🇺', name: 'EnglishIB', desc: 'Plataforma inglés con profes nativos', price: 800, unit: '/año' },
+  { id: 'soporte', icon: '🛡️', name: 'Soporte Premium', desc: 'Atención técnica prioritaria 24/7', price: 600, unit: '/año' }
+];
+
+// ── STATE ──
+let cart = [];
+let currentProduct = null;
+let selectedSize = null;
+let selectedModel = null;
+let selectedAddons = new Set();
+let selectedSlot = null;
+let demoProductName = null;
+
+// ── NAVIGATION ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'cart') renderCart();
+  if (id === 'checkout') renderCheckoutSummary();
+}
+
+function filterProducts(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(cat);
+}
+
+// ── RENDER CATALOG ──
+function renderProducts(filterCat = 'all') {
+  const grid = document.getElementById('products-grid');
+  const filtered = filterCat === 'all' ? products : products.filter(p => p.cat === filterCat);
+  grid.innerHTML = filtered.map(p => {
+    const basePrice = p.sizes.length ? p.basePrices[p.sizes[0]] : p.basePrices.default;
+    const catLabels = { educacion: 'Educación', empresa: 'Empresas', totem: 'Señalización', software: 'Software' };
+    return `
+      <div class="product-card" onclick="openProduct(${p.id})">
+        <div class="product-img">
+          <span style="font-size:52px">${p.emoji}</span>
+          <span class="badge-cat">${catLabels[p.cat]}</span>
+          ${p.isNew ? '<span class="badge-new">¡Nuevo!</span>' : ''}
+        </div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-desc">${p.shortDesc}</div>
+          <div class="product-footer">
+            <div class="product-price">S/ ${basePrice.toLocaleString()}<span> desde</span></div>
+            <button class="btn-ver" onclick="event.stopPropagation();openProduct(${p.id})">Ver más</button>
+          </div>
+        </div>
+        <button class="wishlist-btn" onclick="event.stopPropagation();toggleWish(this)">♡</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleWish(btn) {
+  btn.classList.toggle('active');
+  btn.textContent = btn.classList.contains('active') ? '♥' : '♡';
+  showToast(btn.classList.contains('active') ? '❤️ Guardado en favoritos' : 'Eliminado de favoritos');
+}
+
+// ── PRODUCT DETAIL ──
+function openProduct(id) {
+  currentProduct = products.find(p => p.id === id);
+  selectedAddons = new Set();
+
+  // Reset
+  selectedSize = currentProduct.sizes.length ? currentProduct.sizes[0] : null;
+  selectedModel = currentProduct.models[0].id;
+
+  document.getElementById('detail-cat').textContent = { educacion: '🎓 Educación', empresa: '🏢 Empresas', totem: '📣 Señalización', software: '💻 Software' }[currentProduct.cat];
+  document.getElementById('detail-name').textContent = currentProduct.name;
+
+  // Sizes
+  const sizeGroup = document.getElementById('size-group');
+  const sizeOpts = document.getElementById('size-options');
+  if (currentProduct.sizes.length > 1) {
+    sizeGroup.style.display = 'block';
+    sizeOpts.innerHTML = currentProduct.sizes.map(s =>
+      `<div class="size-opt ${s === selectedSize ? 'selected' : ''}" onclick="selectSize(${s}, this)">${s}"</div>`
+    ).join('');
+  } else {
+    sizeGroup.style.display = 'none';
+  }
+
+  // Models
+  const modelGroup = document.getElementById('model-group');
+  const modelOpts = document.getElementById('model-options');
+  if (currentProduct.models.length > 1) {
+    modelGroup.style.display = 'block';
+    renderModels();
+  } else {
+    modelGroup.style.display = 'none';
+  }
+
+  // Add-ons (only for hardware)
+  const addonsGroup = document.getElementById('addons-group');
+  if (currentProduct.cat !== 'software') {
+    addonsGroup.style.display = 'block';
+    document.getElementById('addon-options').innerHTML = addons.map(a =>
+      `<div class="addon-opt" id="addon-${a.id}" onclick="toggleAddon('${a.id}')">
+        <div class="addon-left">
+          <span class="addon-icon">${a.icon}</span>
+          <div><div class="addon-name">${a.name}</div><div class="addon-desc">${a.desc}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="addon-price">+S/ ${a.price.toLocaleString()}${a.unit}</span>
+          <div class="addon-check">✓</div>
+        </div>
+      </div>`
+    ).join('');
+  } else {
+    addonsGroup.style.display = 'none';
+  }
+
+  // Features
+  document.getElementById('features-list').innerHTML = currentProduct.features.map(f =>
+    `<div class="feat-item"><span class="feat-check">✓</span>${f}</div>`
+  ).join('');
+
+  updateDetailPrice();
+  showPage('detail');
+}
+
+function renderModels() {
+  document.getElementById('model-options').innerHTML = currentProduct.models.map(m =>
+    `<div class="model-opt ${m.id === selectedModel ? 'selected' : ''}" onclick="selectModel('${m.id}', this)">
+      <div class="model-name">${m.name}</div>
+      <div class="model-extra">${m.extra}${m.extraPrice ? ' · +S/ ' + m.extraPrice.toLocaleString() : ''}</div>
+    </div>`
+  ).join('');
+}
+
+function selectSize(size, el) {
+  selectedSize = size;
+  document.querySelectorAll('.size-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('size-badge').textContent = size + '"';
+  updateDetailPrice();
+}
+
+function selectModel(id, el) {
+  selectedModel = id;
+  document.querySelectorAll('.model-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  updateDetailPrice();
+}
+
+function toggleAddon(id) {
+  const el = document.getElementById('addon-' + id);
+  if (selectedAddons.has(id)) {
+    selectedAddons.delete(id);
+    el.classList.remove('selected');
+  } else {
+    selectedAddons.add(id);
+    el.classList.add('selected');
+  }
+  updateDetailPrice();
+}
+
+function updateDetailPrice() {
+  if (!currentProduct) return;
+  const basePrice = selectedSize ? currentProduct.basePrices[selectedSize] : currentProduct.basePrices.default;
+  const modelPrice = currentProduct.models.find(m => m.id === selectedModel)?.extraPrice || 0;
+  const addonTotal = Array.from(selectedAddons).reduce((sum, id) => sum + (addons.find(a => a.id === id)?.price || 0), 0);
+  const total = basePrice + modelPrice + addonTotal;
+  document.getElementById('detail-price').textContent = 'S/ ' + basePrice.toLocaleString();
+  document.getElementById('config-total').textContent = 'S/ ' + total.toLocaleString();
+}
+
+// ── CART ──
+function addToCart() {
+  if (!currentProduct) return;
+  const basePrice = selectedSize ? currentProduct.basePrices[selectedSize] : currentProduct.basePrices.default;
+  const modelObj = currentProduct.models.find(m => m.id === selectedModel);
+  const modelPrice = modelObj?.extraPrice || 0;
+  const selectedAddonObjs = Array.from(selectedAddons).map(id => addons.find(a => a.id === id));
+  const addonTotal = selectedAddonObjs.reduce((sum, a) => sum + a.price, 0);
+
+  cart.push({
+    id: Date.now(),
+    product: currentProduct,
+    size: selectedSize,
+    model: modelObj,
+    addons: selectedAddonObjs,
+    price: basePrice + modelPrice + addonTotal
+  });
+
+  updateCartCount();
+  showToast('🛒 Agregado al carrito');
+}
+
+function updateCartCount() {
+  document.getElementById('cart-count').textContent = cart.length;
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartCount();
+  renderCart();
+}
+
+function renderCart() {
+  const el = document.getElementById('cart-content');
+  if (cart.length === 0) {
+    el.innerHTML = `<div class="empty-cart">
+      <div class="empty-icon">🛒</div>
+      <h3>Tu carrito está vacío</h3>
+      <p>Explora nuestros productos y agrega lo que necesitas.</p>
+      <button class="btn-primary" onclick="showPage('home')">Ver productos</button>
+    </div>`;
+    return;
+  }
+  const subtotal = cart.reduce((s, i) => s + i.price, 0);
+  const igv = Math.round(subtotal * 0.18);
+  const total = subtotal + igv;
+  el.innerHTML = `<div class="cart-grid">
+    <div class="cart-items">
+      <div class="cart-header">🛒 Tu carrito (${cart.length} ${cart.length === 1 ? 'producto' : 'productos'})</div>
+      ${cart.map(item => `
+        <div class="cart-item">
+          <div class="cart-item-img">${item.product.emoji}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.product.name}</div>
+            <div class="cart-item-config">
+              ${item.size ? `Tamaño: ${item.size}" · ` : ''}${item.model?.name || ''}
+            </div>
+            ${item.addons.length ? `<div class="cart-item-addons">${item.addons.map(a => `<span class="addon-tag">${a.icon} ${a.name}</span>`).join('')}</div>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div class="cart-item-price">S/ ${item.price.toLocaleString()}</div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})">🗑 Eliminar</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="cart-summary">
+      <div class="summary-title">Resumen</div>
+      <div class="summary-line"><span>Subtotal</span><span>S/ ${subtotal.toLocaleString()}</span></div>
+      <div class="summary-line"><span>IGV (18%)</span><span>S/ ${igv.toLocaleString()}</span></div>
+      <div class="summary-line"><span>Instalación</span><span style="color:var(--green)">Gratis</span></div>
+      <div class="summary-total"><span>Total</span><span class="total-soles">S/ ${total.toLocaleString()}</span></div>
+      <button class="btn-checkout" onclick="showPage('checkout')">Proceder al pago →</button>
+      <div class="secure-note">🔒 Pedido seguro · Factura electrónica</div>
+    </div>
+  </div>`;
+}
+
+function renderCheckoutSummary() {
+  const subtotal = cart.reduce((s, i) => s + i.price, 0);
+  const igv = Math.round(subtotal * 0.18);
+  const total = subtotal + igv;
+  document.getElementById('co-subtotal').textContent = 'S/ ' + subtotal.toLocaleString();
+  document.getElementById('co-igv').textContent = 'S/ ' + igv.toLocaleString();
+  document.getElementById('co-total').textContent = 'S/ ' + total.toLocaleString();
+  document.getElementById('checkout-summary-items').innerHTML = cart.map(i =>
+    `<div class="summary-line"><span style="max-width:180px;font-size:12px;">${i.product.emoji} ${i.product.name}${i.size ? ' ' + i.size + '"' : ''}</span><span>S/ ${i.price.toLocaleString()}</span></div>`
+  ).join('');
+}
+
+function completeOrder() {
+  const orderNum = '#BR-2026-' + String(Math.floor(Math.random() * 9000) + 1000);
+  document.getElementById('order-number').textContent = orderNum;
+  cart = [];
+  updateCartCount();
+  showPage('success');
+}
+
+// ── DEMO ──
+function goToDemo(target) {
+  if (target === 'current' && currentProduct) {
+    demoProductName = currentProduct.name;
+    const info = document.getElementById('demo-product-info');
+    document.getElementById('demo-product-name').textContent = demoProductName;
+    info.style.display = 'block';
+    document.getElementById('dm-producto').value = demoProductName.includes('Tótem') ? 'Tótem Interactivo BT-55XTD' : 'Pantalla Interactiva BTOUCH 86"';
+  } else {
+    document.getElementById('demo-product-info').style.display = 'none';
+  }
+  selectedSlot = null;
+  document.querySelectorAll('.slot-opt').forEach(s => s.classList.remove('selected'));
+  showPage('demo');
+}
+
+function selectSlot(el) {
+  document.querySelectorAll('.slot-opt').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSlot = el.textContent;
+}
+
+function confirmDemo() {
+  const inst = document.getElementById('dm-inst').value || 'Tu institución';
+  const prod = document.getElementById('dm-producto').value;
+  document.getElementById('dc-inst').textContent = inst;
+  document.getElementById('dc-slot').textContent = selectedSlot || 'Por confirmar';
+  document.getElementById('dc-prod').textContent = prod;
+  showPage('demo-success');
+}
+
+function resetAndGoHome() {
+  showPage('home');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+// ── INIT ──
+renderProducts();
+</script>
+</body>
+</html>
