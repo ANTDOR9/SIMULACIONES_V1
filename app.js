@@ -356,4 +356,78 @@ function renderFooter() {
 // ── INIT (run on every page) ──
 document.addEventListener('DOMContentLoaded', () => {
   updateCartBadges();
+  injectLearnBubble();
 });
+
+// ── BURBUJA: Aprende Programación ──
+function injectLearnBubble() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #learn-bubble {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    #learn-bubble-tooltip {
+      background: #1a2332;
+      border: 1px solid rgba(0,163,163,.35);
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 12px;
+      padding: 10px 14px;
+      max-width: 200px;
+      line-height: 1.5;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+      opacity: 0;
+      transform: translateY(6px) scale(.95);
+      transition: all .25s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+    }
+    #learn-bubble:hover #learn-bubble-tooltip,
+    #learn-bubble-tooltip.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    #learn-bubble-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00a3a3, #8b5cf6);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,163,163,.4);
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s, box-shadow .2s;
+      text-decoration: none;
+    }
+    #learn-bubble-btn:hover {
+      transform: scale(1.12) rotate(-5deg);
+      box-shadow: 0 6px 28px rgba(0,163,163,.6);
+    }
+  `;
+  document.head.appendChild(style);
+
+  const bubble = document.createElement('div');
+  bubble.id = 'learn-bubble';
+  bubble.innerHTML = `
+    <div id="learn-bubble-tooltip">🚀 <strong>¿Nuevo en programación?</strong><br>Aprende Kotlin y Android Studio</div>
+    <a id="learn-bubble-btn" href="../aprende-programacion.html" title="Aprende a programar">🧑‍💻</a>
+  `;
+  document.body.appendChild(bubble);
+
+  // Mostrar el tooltip automáticamente por 3 seg al cargar
+  setTimeout(() => {
+    const tip = document.getElementById('learn-bubble-tooltip');
+    if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 3000); }
+  }, 1500);
+}
